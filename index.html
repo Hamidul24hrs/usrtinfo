@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced User List Application</title>
+  <style>
+    /* General Styling */
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #74ebd5, #acb6e5);
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      padding: 20px;
+      font-size: 2.5rem;
+      color: #fff;
+      text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: auto;
+    }
+    input, button {
+      font-size: 1rem;
+      border: none;
+      outline: none;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #4caf50;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    input[type="text"], input[type="file"] {
+      width: calc(100% - 20px);
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Form Styling */
+    .form-container {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+      animation: fadeIn 1s ease-out;
+    }
+
+    /* Table Styling */
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 15px;
+      text-align: left;
+      font-size: 1rem;
+    }
+    th {
+      background-color: #4caf50;
+      color: white;
+    }
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+    .action-buttons button {
+      margin-right: 5px;
+    }
+
+    /* Search Container Styling */
+    .search-container {
+  margin-bottom: 20px;
+}
+
+.search-result {
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  display: none; /* Initially hide the result */
+}
+
+.search-result table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.search-result th,
+.search-result td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.search-result th {
+  background-color: green;
+}
+
+
+    /* Loading Animation */
+    .loading {
+      display: none;
+      margin: 10px auto;
+      text-align: center;
+    }
+    .loading div {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin: 0 2px;
+      background-color: #4caf50;
+      border-radius: 50%;
+      animation: bounce 0.6s infinite alternate;
+    }
+    .loading div:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .loading div:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes bounce {
+      from {
+        transform: translateY(0);
+      }
+      to {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* Digital Clock Styling */
+    #clock {
+      text-align: center;
+      font-size: 2rem;
+      margin-top: 10px;
+      color: #fff;
+      font-weight: bold;
+      text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 2s ease-in-out infinite alternate;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>User List Application</h1>
+  
+  <!-- Digital Clock -->
+  <div id="clock"></div>
+
+  <div class="container">
+    <!-- Form to Add New User -->
+    <div class="form-container">
+      <h3>Add New User</h3>
+      <input type="text" id="username" placeholder="Username" required>
+      <input type="text" id="userNumber" placeholder="User Number" required>
+      <input type="text" id="phone" placeholder="Phone" required>
+      <input type="text" id="company" placeholder="Company">
+      <input type="text" id="unit" placeholder="Unit">
+      <button onclick="addUser()">Add User</button>
+    </div>
+
+    <!-- File Upload -->
+    <input type="file" id="uploadExcel" accept=".xlsx, .xls">
+    <button onclick="processUpload()">Upload File</button>
+
+    
+     <!-- Search Result -->
+    <div class="search-container">
+  <input type="text" id="searchInput" placeholder="Search by User Number or Phone" />
+  <button onclick="searchUser()">Search</button>
+</div>
+
+<div id="searchResult" class="search-result">
+  <table>
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>User Number</th>
+        <th>Phone</th>
+        <th>Company</th>
+        <th>Unit</th>
+      </tr>
+    </thead>
+    <tbody id="resultBody">
+      <!-- Search results will appear here -->
+    </tbody>
+  </table>
+</div>
+
+    <!-- Loading Animation -->
+    <div class="loading" id="loadingAnimation">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+
+    <!-- User List Table -->
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>User Number</th>
+          <th>Phone</th>
+          <th>Company</th>
+          <th>Unit</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamically filled rows -->
+      </tbody>
+    </table>
+
+   
+
+<!-- Add this button in your HTML -->
+<button id="downloadExcel">Download Excel</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    const uploadExcel = document.getElementById('uploadExcel');
+    const processUploadButton = document.querySelector('button[onclick="processUpload()"]');
+    const searchInput = document.getElementById('searchInput');
+    const searchResult = document.getElementById('searchResult');
+    const loadingAnimation = document.getElementById('loadingAnimation');
+    const userTableBody = document.querySelector('#userTable tbody');
+    let userData = JSON.parse(localStorage.getItem('userData')) || [];
+
+    // Initialize Table with Existing Data
+    renderTable(userData);
+
+function addUser() {
+  const username = document.getElementById('username').value.trim();
+  const userNumber = document.getElementById('userNumber').value.trim();
+  const phone = document.getElementById('phone').value.trim();
+  const company = document.getElementById('company').value.trim();
+  const unit = document.getElementById('unit').value.trim();
+
+  if (!username || !userNumber || !phone) {
+    alert("Please fill in all required fields.");
+    return;
+  }
+
+  // Check for duplicate username or phone
+  const isDuplicate = userData.some(user => user['User Number'] === userNumber || user.Phone === phone);
+
+  if (isDuplicate) {
+    alert('User with this username or phone number already exists.');
+    return;
+  }
+
+  const newUser = { Username: username, 'User Number': userNumber, Phone: phone, Company: company, Unit: unit };
+  userData.push(newUser);
+  localStorage.setItem('userData', JSON.stringify(userData));
+  renderTable(userData);
+
+  // Clear form fields
+  document.getElementById('username').value = '';
+  document.getElementById('userNumber').value = '';
+  document.getElementById('phone').value = '';
+  document.getElementById('company').value = '';
+  document.getElementById('unit').value = '';
+}
+
+
+    // Handle Excel File Upload and Fill Data
+    function processUpload() {
+      const file = uploadExcel.files[0];
+      if (file) {
+        const reader = new FileReader();
+        loadingAnimation.style.display = 'block';
+        
+        reader.onload = (e) => {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          const excelData = XLSX.utils.sheet_to_json(sheet);
+          userData = [...userData, ...excelData];
+          localStorage.setItem('userData', JSON.stringify(userData));
+          renderTable(userData);
+          
+          loadingAnimation.style.display = 'none';
+        };
+        reader.readAsArrayBuffer(file);
+      }
+    }
+
+    // Render Table with User Data
+    function renderTable(data) {
+      userTableBody.innerHTML = '';
+      data.forEach((user, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${user.Username}</td>
+          <td>${user['User Number']}</td>
+          <td>${user.Phone}</td>
+          <td>${user.Company}</td>
+          <td>${user.Unit}</td>
+          <td class="action-buttons">
+            <button onclick="editUser(${index})">Edit</button>
+            <button onclick="deleteUser(${index})">Delete</button>
+          </td>
+        `;
+        userTableBody.appendChild(row);
+      });
+    }
+
+    // Edit User
+    function editUser(index) {
+      const user = userData[index];
+      document.getElementById('username').value = user.Username;
+      document.getElementById('userNumber').value = user['User Number'];
+      document.getElementById('phone').value = user.Phone;
+      document.getElementById('company').value = user.Company;
+      document.getElementById('unit').value = user.Unit;
+
+      // Remove the user from the data array
+      userData.splice(index, 1);
+      localStorage.setItem('userData', JSON.stringify(userData));
+      renderTable(userData);
+    }
+
+    // Delete User
+    function deleteUser(index) {
+      if (confirm('Are you sure you want to delete this user?')) {
+        userData.splice(index, 1);
+        localStorage.setItem('userData', JSON.stringify(userData));
+        renderTable(userData);
+      }
+    }
+
+    // Search Function
+   function searchUser() {
+  const searchValue = searchInput.value.trim();
+  searchResult.style.display = 'none';
+  loadingAnimation.style.display = 'block';
+
+  setTimeout(() => {
+    const user = userData.find(
+      (u) =>
+        String(u['User Number']).trim() === searchValue ||
+        String(u.Phone).trim() === searchValue
+    );
+    loadingAnimation.style.display = 'none';
+
+    if (user) {
+      document.getElementById('resultUsername').textContent = user.Username;
+      document.getElementById('resultUserNumber').textContent = user['User Number'];
+      document.getElementById('resultPhone').textContent = user.Phone;
+      document.getElementById('resultCompany').textContent = user.Company;
+      document.getElementById('resultUnit').textContent = user.Unit;
+      searchResult.style.display = 'block';
+    } else {
+      alert('No user found!');
+    }
+  }, 1000); // Simulated delay of 1 second
+}
+
+function searchUser() {
+  const searchValue = searchInput.value.trim();
+  const searchResult = document.getElementById('searchResult');
+  const resultBody = document.getElementById('resultBody');
+
+  searchResult.style.display = 'none'; // Hide the result initially
+
+  // Loading animation (optional)
+  setTimeout(() => {
+    const user = userData.find(
+      (u) =>
+        String(u['User Number']).trim() === searchValue ||
+        String(u.Phone).trim() === searchValue
+    );
+
+    if (user) {
+      resultBody.innerHTML = `
+        <tr>
+          <td>${user.Username}</td>
+          <td>${user['User Number']}</td>
+          <td>${user.Phone}</td>
+          <td>${user.Company}</td>
+          <td>${user.Unit}</td>
+        </tr>
+      `;
+      searchResult.style.display = 'block'; // Show the result
+    } else {
+      alert('No user found!');
+    }
+  }, 1000); // Simulated delay for loading
+}
+
+
+// Download Excel Function
+function downloadExcel() {
+  if (userData.length === 0) {
+    alert('No data available to download.');
+    return;
+  }
+
+  // Load data into XLSX sheet
+  const ws = XLSX.utils.json_to_sheet(userData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Users');
+
+  // Generate file and trigger download
+  const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const excelData = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  const url = URL.createObjectURL(excelData);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'User_List.xlsx';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Add event listener to the download button
+document.getElementById('downloadExcel').addEventListener('click', downloadExcel);
+
+    // Real-time Digital Clock
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    setInterval(updateClock, 1000); // Update clock every second
+
+  </script>
+</body>
+</html>
